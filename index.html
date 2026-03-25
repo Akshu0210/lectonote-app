@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LectoNote - Lecture Speech to Smart Notes</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <header class="header">
+      <h1>Lecto<span class="highlight">Note</span></h1>
+      <p>LECTURE SPEECH &rarr; SMART NOTES</p>
+    </header>
+
+    <main class="main-content">
+      <section class="recording-section">
+        <div class="recording-card">
+          <div class="badge">RECORDER</div>
+          <h2>Capture Your<br>Lecture</h2>
+          
+          <div class="controls">
+            <button id="start-btn" class="btn btn-primary">
+              <span class="recording-dot"></span> START RECORDING
+            </button>
+            <button id="stop-btn" class="btn btn-danger" style="display: none;">
+              <span class="recording-dot active"></span> STOP RECORDING
+            </button>
+            
+            <div class="secondary-controls">
+              <button id="clear-btn" class="btn btn-outline">CLEAR</button>
+              <div id="timer" class="timer">00:00</div>
+            </div>
+          </div>
+
+          <div class="transcription-box">
+            <p id="transcription-text" class="placeholder-text">Your spoken words will appear here in real-time...</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="save-section">
+        <div class="save-controls">
+          <input type="text" id="note-title" placeholder="Note title (e.g. Biology - )" class="input-field">
+          <button id="save-btn" class="btn btn-secondary">SAVE NOTE</button>
+        </div>
+      </section>
+
+      <section class="notes-section">
+        <div class="notes-header">
+          <h2>My Notes</h2>
+          <span id="notes-count" class="count">0 notes</span>
+        </div>
+        
+        <div class="search-box">
+          <input type="text" id="search-input" placeholder="Search notes..." class="input-field">
+        </div>
+
+        <div id="notes-list" class="notes-list">
+          <!-- Notes will be dynamically inserted here -->
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
