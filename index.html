@@ -1,68 +1,105 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LectoNote - Lecture Speech to Smart Notes</title>
-  <link rel="stylesheet" href="style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LectoNote Pro – Smart Lecture Notes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-  <div class="app-container">
-    <header class="header">
-      <h1>Lecto<span class="highlight">Note</span></h1>
-      <p>LECTURE SPEECH &rarr; SMART NOTES</p>
+    <div class="bg-animated"></div>
+    <header class="fade-in-down">
+        <div class="header-content">
+            <h1><i class="fa-solid fa-microphone-lines"></i> LectoNote Pro</h1>
+            <p>Smart Lecture Notes with Drawing, Audio, and Voice Save</p>
+        </div>
     </header>
 
-    <main class="main-content">
-      <section class="recording-section">
-        <div class="recording-card">
-          <div class="badge">RECORDER</div>
-          <h2>Capture Your<br>Lecture</h2>
-          
-          <div class="controls">
-            <button id="start-btn" class="btn btn-primary">
-              <span class="recording-dot"></span> START RECORDING
-            </button>
-            <button id="stop-btn" class="btn btn-danger" style="display: none;">
-              <span class="recording-dot active"></span> STOP RECORDING
-            </button>
-            
-            <div class="secondary-controls">
-              <button id="clear-btn" class="btn btn-outline">CLEAR</button>
-              <div id="timer" class="timer">00:00</div>
+    <main class="container fade-in-up">
+        <section class="card controls-section feature-card">
+            <div class="control-group">
+                <h3><i class="fa-solid fa-language text-gradient"></i> Speech to Text</h3>
+                <select id="speech-lang" class="glass-input">
+                    <option value="en-US">English (US)</option>
+                    <option value="en-IN">English (India)</option>
+                    <option value="ta-IN">Tamil (தமிழ்)</option>
+                </select>
+                <div class="buttons">
+                    <button id="start-speech" class="btn primary"><i class="fa-solid fa-play"></i> Start</button>
+                    <button id="stop-speech" class="btn danger" disabled><i class="fa-solid fa-stop"></i> Stop</button>
+                </div>
+                <div class="status-indicator" id="speech-status">Waiting...</div>
             </div>
-          </div>
 
-          <div class="transcription-box">
-            <p id="transcription-text" class="placeholder-text">Your spoken words will appear here in real-time...</p>
-          </div>
-        </div>
-      </section>
+            <div class="control-group">
+                <h3><i class="fa-solid fa-microphone text-gradient"></i> Audio Recording</h3>
+                <div class="buttons">
+                    <button id="start-audio" class="btn primary"><i class="fa-solid fa-record-vinyl"></i> Record</button>
+                    <button id="pause-audio" class="btn accent" style="display: none;"><i class="fa-solid fa-pause"></i> Pause</button>
+                    <button id="resume-audio" class="btn accent" style="display: none;"><i class="fa-solid fa-play"></i> Resume</button>
+                    <button id="stop-audio" class="btn danger" disabled><i class="fa-solid fa-stop"></i> Stop</button>
+                </div>
+                <div class="timer" id="audio-timer">00:00</div>
+                <div id="audio-preview-container" style="display: none; width: 100%;">
+                    <p class="text-xs text-muted mb-2"><i class="fa-solid fa-circle-info"></i> Temporary recording</p>
+                    <audio id="audio-playback" controls style="width: 100%;"></audio>
+                    <a id="download-audio" class="btn secondary mt-2" style="width: 100%;"><i class="fa-solid fa-download"></i> Download</a>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <h3><i class="fa-solid fa-file-pdf text-gradient"></i> Export</h3>
+                <button id="export-pdf" class="btn accent"><i class="fa-solid fa-file-export"></i> Export Note to PDF</button>
+                <p class="text-xs text-muted mt-2"><i class="fa-solid fa-circle-info"></i> Voice automatically saves.</p>
+            </div>
+        </section>
 
-      <section class="save-section">
-        <div class="save-controls">
-          <input type="text" id="note-title" placeholder="Note title (e.g. Biology - )" class="input-field">
-          <button id="save-btn" class="btn btn-secondary">SAVE NOTE</button>
-        </div>
-      </section>
+        <section class="content-grid">
+            <div class="card transcription-card feature-card">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-align-left text-gradient"></i> Live Transcription</h3>
+                    <button id="clear-text" class="btn icon-btn" title="Clear Text"><i class="fa-solid fa-trash"></i></button>
+                </div>
+                <textarea id="transcription-text" placeholder="Your speech will appear here..."></textarea>
+            </div>
 
-      <section class="notes-section">
-        <div class="notes-header">
-          <h2>My Notes</h2>
-          <span id="notes-count" class="count">0 notes</span>
-        </div>
-        
-        <div class="search-box">
-          <input type="text" id="search-input" placeholder="Search notes..." class="input-field">
-        </div>
+            <div class="card drawing-card feature-card">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-pen-nib text-gradient"></i> Drawing Canvas</h3>
+                    <div>
+                        <button id="undo-canvas" class="btn icon-btn" title="Undo"><i class="fa-solid fa-rotate-left"></i></button>
+                        <button id="redo-canvas" class="btn icon-btn" title="Redo"><i class="fa-solid fa-rotate-right"></i></button>
+                        <button id="clear-canvas" class="btn icon-btn" title="Clear Canvas"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+                <div class="canvas-container">
+                    <canvas id="drawing-canvas"></canvas>
+                </div>
+            </div>
+        </section>
 
-        <div id="notes-list" class="notes-list">
-          <!-- Notes will be dynamically inserted here -->
-        </div>
-      </section>
+        <section class="notes-grid">
+            <div class="card save-note-card feature-card">
+                <h3><i class="fa-solid fa-floppy-disk text-gradient"></i> Save Note</h3>
+                <div class="input-group">
+                    <input type="text" id="note-title" class="glass-input" placeholder="Enter Note Title...">
+                    <button id="save-note" class="btn primary"><i class="fa-solid fa-bookmark"></i> Save Note</button>
+                </div>
+            </div>
+
+            <div class="card notes-list-card feature-card">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-folder-open text-gradient"></i> Saved Notes</h3>
+                    <input type="text" id="search-notes" class="glass-input" placeholder="Search notes...">
+                </div>
+                <div class="notes-list" id="notes-list">
+                </div>
+            </div>
+        </section>
     </main>
-  </div>
-  <script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
