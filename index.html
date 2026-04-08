@@ -12,9 +12,14 @@
 <body>
     <div class="bg-animated"></div>
     <header class="fade-in-down">
-        <div class="header-content">
-            <h1><i class="fa-solid fa-microphone-lines"></i> LectoNote Pro</h1>
-            <p>Smart Lecture Notes with Drawing, Audio, and Voice Save</p>
+        <div class="header-content header-split">
+            <div>
+                <h1><i class="fa-solid fa-microphone-lines"></i> LectoNote Pro</h1>
+                <p>Smart Lecture Notes with Drawing, Audio, and Voice Save</p>
+            </div>
+            <button id="theme-toggle" class="btn icon-btn" title="Toggle Light/Dark Mode">
+                <i class="fa-solid fa-sun"></i>
+            </button>
         </div>
     </header>
 
@@ -61,19 +66,44 @@
             <div class="card transcription-card feature-card">
                 <div class="card-header">
                     <h3><i class="fa-solid fa-align-left text-gradient"></i> Live Transcription</h3>
-                    <button id="clear-text" class="btn icon-btn" title="Clear Text"><i class="fa-solid fa-trash"></i></button>
+                    <div class="header-actions">
+                        <button id="copy-text" class="btn icon-btn" title="Copy Text"><i class="fa-regular fa-copy"></i></button>
+                        <button id="clear-text" class="btn icon-btn" title="Clear Text"><i class="fa-solid fa-trash"></i></button>
+                    </div>
                 </div>
-                <textarea id="transcription-text" placeholder="Your speech will appear here..."></textarea>
+                <div class="rich-text-toolbar">
+                    <button class="btn icon-btn rt-btn" data-command="bold" title="Bold"><i class="fa-solid fa-bold"></i></button>
+                    <button class="btn icon-btn rt-btn" data-command="italic" title="Italic"><i class="fa-solid fa-italic"></i></button>
+                    <button class="btn icon-btn rt-btn" data-command="underline" title="Underline"><i class="fa-solid fa-underline"></i></button>
+                    <div class="toolbar-divider"></div>
+                    <button class="btn icon-btn rt-btn" data-command="insertUnorderedList" title="Bullet List"><i class="fa-solid fa-list-ul"></i></button>
+                    <button class="btn icon-btn rt-btn" data-command="insertOrderedList" title="Numbered List"><i class="fa-solid fa-list-ol"></i></button>
+                </div>
+                <div id="transcription-text" class="rich-textarea" contenteditable="true" aria-placeholder="Your speech will appear here..."></div>
             </div>
 
             <div class="card drawing-card feature-card">
                 <div class="card-header">
                     <h3><i class="fa-solid fa-pen-nib text-gradient"></i> Drawing Canvas</h3>
                     <div>
+                        <button id="download-canvas" class="btn icon-btn" title="Download Image"><i class="fa-solid fa-download"></i></button>
                         <button id="undo-canvas" class="btn icon-btn" title="Undo"><i class="fa-solid fa-rotate-left"></i></button>
                         <button id="redo-canvas" class="btn icon-btn" title="Redo"><i class="fa-solid fa-rotate-right"></i></button>
                         <button id="clear-canvas" class="btn icon-btn" title="Clear Canvas"><i class="fa-solid fa-trash"></i></button>
                     </div>
+                </div>
+                <div class="canvas-toolbar">
+                    <input type="color" id="brush-color" value="#000000" title="Brush Color">
+                    <div class="brush-size-container" title="Brush Size">
+                        <i class="fa-solid fa-circle" style="font-size: 0.4rem; color: var(--text-muted);"></i>
+                        <input type="range" id="brush-size" min="1" max="50" value="2.5">
+                        <i class="fa-solid fa-circle" style="font-size: 0.9rem; color: var(--text-muted);"></i>
+                    </div>
+                    <div class="toolbar-divider"></div>
+                    <button id="eraser-mode" class="btn icon-btn tool-btn" title="Eraser"><i class="fa-solid fa-eraser"></i></button>
+                    <div class="toolbar-divider"></div>
+                    <button id="upload-image-btn" class="btn icon-btn tool-btn" title="Insert Image"><i class="fa-regular fa-image"></i></button>
+                    <input type="file" id="image-upload" accept="image/*" style="display: none;">
                 </div>
                 <div class="canvas-container">
                     <canvas id="drawing-canvas"></canvas>
