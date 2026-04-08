@@ -58,6 +58,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         alert("Warning: Offline storage unavailable.");
     }
 
+    // --- Theme Toggle ---
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const isLightMode = localStorage.getItem('lectonote_theme') === 'light';
+    if (isLightMode) document.body.classList.add('light-theme');
+    
+    themeToggleBtn.addEventListener('click', () => {
+        document.body.classList.toggle('light-theme');
+        const theme = document.body.classList.contains('light-theme') ? 'light' : 'dark';
+        localStorage.setItem('lectonote_theme', theme);
+    });
+
     let currentAudioBlob = null;
 
     // --- Speech to Text ---
@@ -86,7 +97,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             for (let i = event.resultIndex; i < event.results.length; i++) {
                 if (event.results[i].isFinal) finalTranscript += event.results[i][0].transcript + ' ';
             }
-            if (finalTranscript) transcriptionText.value += finalTranscript;
+            if (finalTranscript) {
+                transcriptionText.appendChild(document.createTextNode(finalTranscript));
+            }
         };
 
         recognition.onerror = (event) => {
@@ -122,7 +135,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     clearTextBtn.addEventListener('click', () => {
         clearTextBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
         setTimeout(() => clearTextBtn.innerHTML = '<i class="fa-solid fa-trash"></i>', 1000);
-        transcriptionText.value = '';
+        transcriptionText.innerHTML = '';
+    });
+
+    // --- Rich Text Toolbar ---
+    const rtBtns = document.querySelectorAll('.rt-btn');
+    rtBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            document.execCommand(btn.dataset.command, false, null);
+            transcriptionText.focus();
+        });
+    });
+
+    const copyTextBtn = document.getElementById('copy-text');
+    copyTextBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(transcriptionText.innerText).then(() => {
+            const origHTML = copyTextBtn.innerHTML;
+            copyTextBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
+            setTimeout(() => copyTextBtn.innerHTML = origHTML, 1500);
+        });
     });
 
     // --- Audio Recording ---
@@ -229,6 +261,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     const clearCanvasBtn = document.getElementById('clear-canvas');
     const undoCanvasBtn = document.getElementById('undo-canvas');
     const redoCanvasBtn = document.getElementById('redo-canvas');
+    const downloadCanvasBtn = document.getElementById('download-canvas');
+    
+    // Canvas Toolbar Tools
+    const brushColorInp = document.getElementById('brush-color');
+    const brushSizeInp = document.getElementById('brush-size');
+    const eraserModeBtn = document.getElementById('eraser-mode');
+    const uploadImageBtn = document.getElementById('upload-image-btn');
+    const imageUploadInp = document.getElementById('image-upload');
+    
+    let isEraser = false;
 
     let isDrawing = false;
     let lastX = 0;
@@ -258,10 +300,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         canvas.width = rect.width;
         canvas.height = rect.height;
         
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = brushColorInp.value;
+        ctx.lineWidth = brushSizeInp.value;
         ctx.lineJoin = 'round';
         ctx.lineCap = 'round';
+        if (isEraser) ctx.globalCompositeOperation = 'destination-out';
         
         const img = new Image();
         img.onload = () => {
@@ -316,6 +359,59 @@ document.addEventListener('DOMContentLoaded', async () => {
     canvas.addEventListener('touchstart', startDrawing, { passive: false });
     canvas.addEventListener('touchmove', draw, { passive: false });
     canvas.addEventListener('touchend', stopDrawing);
+
+    // Toolbar Listeners
+    brushColorInp.addEventListener('input', (e) => {
+        ctx.strokeStyle = e.target.value;
+        isEraser = false;
+        eraserModeBtn.classList.remove('active');
+        ctx.globalCompositeOperation = 'source-over';
+    });
+
+    brushSizeInp.addEventListener('input', (e) => {
+        ctx.lineWidth = e.target.value;
+    });
+
+    eraserModeBtn.addEventListener('click', () => {
+        isEraser = !isEraser;
+        eraserModeBtn.classList.toggle('active', isEraser);
+        ctx.globalCompositeOperation = isEraser ? 'destination-out' : 'source-over';
+    });
+
+    uploadImageBtn.addEventListener('click', () => imageUploadInp.click());
+
+    imageUploadInp.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+                const scale = Math.min(canvas.width / img.width, canvas.height / img.height) * 0.9;
+                const x = (canvas.width / 2) - (img.width / 2) * scale;
+                const y = (canvas.height / 2) - (img.height / 2) * scale;
+                ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+                saveState();
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+
+    downloadCanvasBtn.addEventListener('click', () => {
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = canvas.width;
+        tempCanvas.height = canvas.height;
+        const tCtx = tempCanvas.getContext('2d');
+        tCtx.fillStyle = document.body.classList.contains('light-theme') ? '#ffffff' : '#0a0f1d';
+        tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+        tCtx.drawImage(canvas, 0, 0);
+
+        const link = document.createElement('a');
+        link.download = `Lecture_Drawing_${Date.now()}.png`;
+        link.href = tempCanvas.toDataURL('image/png');
+        link.click();
+    });
 
     clearCanvasBtn.addEventListener('click', () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -393,7 +489,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const allNotes = await dbFuncs.getAllNotes();
                     const note = allNotes.find(n => n.id === id);
                     if (note) {
-                        transcriptionText.value = note.text;
+                        transcriptionText.innerHTML = note.text;
                         noteTitleInput.value = note.title;
                         if (note.canvasData) {
                             restoreState(note.canvasData);
@@ -424,7 +520,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     saveNoteBtn.addEventListener('click', async () => {
         const title = noteTitleInput.value.trim();
-        const text = transcriptionText.value.trim();
+        const text = transcriptionText.innerHTML;
         
         if (!title) {
             alert('Please enter a note title.');
@@ -449,7 +545,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             await dbFuncs.saveNote(newNote);
             
             // Auto-generate PDF on save
-            generateAndDownloadPDF(newNote.title, newNote.text, newNote.canvasData);
+            generateAndDownloadPDF(newNote.title, transcriptionText.innerText, newNote.canvasData);
 
             currentAudioBlob = null;
             audioPreviewContainer.style.display = 'none';
@@ -527,7 +623,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         setTimeout(() => {
             const title = noteTitleInput.value.trim() || 'LectoNote_Export';
-            const text = transcriptionText.value.trim();
+            const text = transcriptionText.innerText;
             const canvasData = canvas.toDataURL('image/png');
             
             const success = generateAndDownloadPDF(title, text, canvasData);
